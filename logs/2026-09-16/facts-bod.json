@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-16",
+  "fleet": {
+    "in_flight": {
+      "by_status": [
+        {
+          "count": 2,
+          "status": "pending"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "d9bba506",
+          "status": "pending",
+          "title": "Review external PR #28: chore(deps): bump github/codeql-action from 4.37.9 to 4.38.0"
+        },
+        {
+          "id": "79a176fd",
+          "status": "pending",
+          "title": "Pest Control exploration cycle"
+        }
+      ],
+      "total": 2
+    },
+    "state": "active"
+  },
+  "generated_at": "2026-09-16T22:16:36.752869+00:00",
+  "github": {
+    "open_prs": 1
+  },
+  "log_repo": "rennf93/roboco-fleet-log",
+  "phase": "morning",
+  "programs": {
+    "cycles": [
+      {
+        "items_proposed": 0,
+        "items_undecided": 0,
+        "opened_at": "2026-09-01T18:28:04.228646+00:00",
+        "program": "pest_control"
+      }
+    ],
+    "total_undecided": 0
+  },
+  "source_repo": "rennf93/roboco"
+}
