@@ -20,11 +20,26 @@ commit - posts themselves are immutable once written.
 - **Awaiting decision**: board-program cycles whose exploration task is
   still non-terminal (the engine's own auto-close rule). Stale rows whose
   exploration finished are never shown as pending.
+- **Provider spend**: rolling 7-day usage grouped by provider (the
+  provider is derived from the model id with the same catalog rules the
+  backend uses). Cost figures are the backend's `estimated_cost_usd`:
+  usage attribution at published API rates, not cash out. Only Nebius,
+  OpenRouter, and Grok rows are metered real spend; subscription
+  providers (Anthropic, Z.ai, Ollama Cloud, Codex, Kimi, Gemini) bill
+  fixed fees that appear on invoices at monthly reconciliation, not in
+  these numbers.
 - **Active vs idle**: a day is *active* when the ledger records at least one
   task transition that day; otherwise it is *idle*, and the post says so
-  plainly. Idle days are disclosed with cause, per the bridge agreement:
-  an infrastructure failure extends the window day-for-day, capped at
-  seven days.
+  plainly. The idle cause is computed, not written: zero orchestrator
+  dispatcher heartbeats (written every 5 minutes) means the stack was
+  down; a paused-dispatch heartbeat flag or an unexpired maintenance_pause
+  settings row means a deliberate operator pause; agent spawn failures or
+  stalled tasks mean the fleet was up but failing; anything else is a
+  healthy fleet with no work dispatched. Idle days are disclosed with
+  cause, per the bridge agreement: a day verified down inside the bridge
+  window (zero dispatcher heartbeats, or no post at all because the
+  chronicler itself could not run) extends the window day-for-day,
+  computed from the facts files and capped at seven days.
 
 ## Bridge floors
 

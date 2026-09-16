@@ -40,12 +40,54 @@ FROM audit_log
 WHERE event_type = 'board_program.decision'
   AND timestamp >= :day_start AND timestamp < :day_end;
 
--- 8. Provider spend, rolling 7 days (USD as computed by the stack's
---    billing rollups; subscription-billed models may show 0.00 cost).
-SELECT model,
+-- 8. Provider spend, rolling 7 days, grouped by provider. The usage
+--    tables store only the raw model string, so the provider is derived
+--    with the backend's MODEL_CATALOG heuristics (':cloud' wins first:
+--    glm-5.3:cloud is Ollama Cloud, glm-5.3 is Z.ai direct). Costs are
+--    the backend's estimated_cost_usd = usage attribution at published
+--    API rates; subscription fixed fees are NOT in these numbers.
+SELECT CASE
+         WHEN model LIKE '%:cloud%' THEN 'ollama_cloud'
+         WHEN model LIKE 'claude%' OR model LIKE '%opus%'
+           OR model LIKE '%sonnet%' OR model LIKE '%haiku%' THEN 'anthropic'
+         WHEN model LIKE 'glm%' THEN 'zai'
+         WHEN model LIKE 'gpt-%' OR model LIKE '%codex%' THEN 'openai'
+         WHEN model LIKE 'gemini%' THEN 'gemini'
+         WHEN model LIKE 'grok%' THEN 'grok'
+         WHEN model LIKE 'kimi%' THEN 'kimi'
+         WHEN model LIKE 'nvidia/%' THEN 'nebius'
+         WHEN model LIKE 'openrouter/%' THEN 'openrouter'
+         WHEN model LIKE 'ollama/%' THEN 'local'
+         ELSE 'other'
+       END AS provider,
        SUM(total_cost_usd) AS cost_usd,
        SUM(session_count) AS sessions,
-       SUM(tokens_input + tokens_output) AS tokens_total
+       SUM(tokens_input + tokens_output
+           + tokens_cache_read + tokens_cache_write) AS tokens_total
 FROM daily_usage_rollups
 WHERE date >= :since
-GROUP BY model;
+GROUP BY provider
+ORDER BY cost_usd DESC, tokens_total DESC;
+
+-- 9. Idle-cause classification (same signals as the backend's uptime
+--    ledger). Zero heartbeats for a day = stack down; dispatch_paused
+--    heartbeats or an unexpired maintenance_pause row = operator pause;
+--    spawn failures / stalled tasks = up but failing.
+SELECT count(*) FROM audit_log
+WHERE event_type = 'dispatcher.alive'
+  AND timestamp >= :day_start AND timestamp < :day_end;
+
+SELECT count(*) FROM audit_log
+WHERE event_type = 'dispatcher.alive'
+  AND details->>'dispatch_paused' = 'true'
+  AND timestamp >= :day_start AND timestamp < :day_end;
+
+SELECT key, value FROM system_settings WHERE key LIKE 'maintenance_pause.%';
+
+SELECT count(*) FROM audit_log
+WHERE event_type = 'agent.spawn_failed'
+  AND timestamp >= :day_start AND timestamp < :day_end;
+
+SELECT count(*) FROM tasks
+WHERE stalled_reason IS NOT NULL
+  AND status NOT IN ('completed', 'cancelled');
