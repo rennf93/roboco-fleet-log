@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-16",
+  "fleet": {
+    "completed": {
+      "tasks": [],
+      "total": 0
+    },
+    "idle_cause": "no recorded task activity in the ledger today",
+    "state": "idle",
+    "transitions": {
+      "events": [],
+      "total_events": 0
+    }
+  },
+  "generated_at": "2026-09-16T22:16:42.029705+00:00",
+  "log_repo": "rennf93/roboco-fleet-log",
+  "phase": "evening",
+  "programs": {
+    "decisions": [],
+    "total": 0
+  },
+  "releases": [],
+  "root_branch": "master",
+  "root_prs": {
+    "count": 0,
+    "prs": []
+  },
+  "source_repo": "rennf93/roboco",
+  "spend": {
+    "models": [
+      {
+        "cost_usd": 0.0,
+        "model": "kimi-k2.7-code:cloud",
+        "sessions": 14,
+        "tokens_millions": 0.0
+      }
+    ],
+    "since": "2026-09-10"
+  }
+}
